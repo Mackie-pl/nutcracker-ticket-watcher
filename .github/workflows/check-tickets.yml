@@ -1,0 +1,41 @@
+name: Check Nutcracker tickets
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 min (GitHub may start runs a few minutes late)
+  workflow_dispatch:
+    inputs:
+      test_notification:
+        description: "Send a test notification to your phone"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write   # to save state.json between runs
+
+concurrency:
+  group: check-tickets
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check seats
+        run: python3 check_tickets.py
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          TEST_NOTIFY: ${{ inputs.test_notification }}
+
+      - name: Save state
+        run: |
+          if [ -n "$(git status --porcelain state.json)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+            git add state.json
+            git commit -m "Update seat state"
+            git push
+          fi
