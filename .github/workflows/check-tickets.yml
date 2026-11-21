@@ -2,7 +2,7 @@ name: Check Nutcracker tickets
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # every 15 min (GitHub may start runs a few minutes late)
+    - cron: "7,22,37,52 * * * *"   # every 15 min, off the busy top of the hour (GitHub may start runs late)
   workflow_dispatch:
     inputs:
       test_notification:
